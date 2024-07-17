@@ -28,6 +28,38 @@
                 </VRow>
                 <VRow class="mx-2">
                     <VCol>
+                        <AppSelect
+                            :items="GENDERS"
+                            v-model="submitInfo.gender"
+                            :label="submitInfoLabels.gender"
+                        />
+                    </VCol>
+                    <VCol>
+                        <AppSelect
+                            :items="RACE"
+                            v-model="submitInfo.race"
+                            :label="submitInfoLabels.race"
+                        />
+                    </VCol>
+                </VRow>
+                <VRow class="mx-2">
+                    <VCol>
+                        <AppTextField
+                            :items="productList"
+                            v-model="submitInfo.altNum"
+                            :label="submitInfoLabels.altNum"
+                        />
+                    </VCol>
+                    <VCol>
+                        <AppSelect
+                            :items="YES_NO"
+                            v-model="submitInfo.existingUnifi"
+                            :label="submitInfoLabels.existingUnifi"
+                        />
+                    </VCol>
+                </VRow>
+                <VRow class="mx-2">
+                    <VCol>
                         <AppTextField
                             v-model="submitInfo.fullname"
                             :label="submitInfoLabels.fullname"
@@ -35,8 +67,8 @@
                     </VCol>
                     <VCol>
                         <AppTextField
-                            v-model="submitInfo.passportNo"
-                            :label="submitInfoLabels.passportNo"
+                            v-model="submitInfo.nric"
+                            :label="submitInfoLabels.nric"
                         />
                     </VCol>
                 </VRow>
@@ -112,12 +144,20 @@
                         />
                     </VCol>
                 </VRow>
+                <VRow class="mx-2">
+                    <VCol>
+                        <AppTextField
+                            v-model="submitInfo.remark"
+                            :label="submitInfoLabels.remark"
+                        />
+                    </VCol>
+                </VRow>
             </VCardText>
             <VCardText class="d-flex justify-end flex-wrap gap-3">
                 <VBtn
                     variant="tonal"
                     color="secondary"
-                    @click="isDialogVisible = false"
+                    @click="close"
                 >
                     Close
                 </VBtn>
@@ -137,7 +177,7 @@
     </VDialog>
 </template>
 <script setup>
-import { defaultSubmitInfo, submitInfoLabels } from '@/plugins/constant';
+import { GENDERS, RACE, YES_NO, defaultSubmitInfo, submitInfoLabels } from '@/plugins/constant';
 import axios from 'axios';
 import { onMounted, toRef, watch } from 'vue';
 
@@ -268,7 +308,12 @@ const getAvailablePackageList = () => {
 const submit = () => {
     const param = submitInfo.value
     for (const key of Object.keys(param)) {
-        console.log(key)
+        if (key == 'address3')
+            continue
+
+        if (key == 'remark')
+            continue
+
         if (param[key] == '' || !param[key]) {
             error.value = `'${submitInfoLabels[key]}' must not be empty!`
             return
@@ -286,16 +331,39 @@ const submit = () => {
         address: `${param.address1} ${param.address2} ${param.address3}`,
         postcode: param.postcode, 
         state_name: param.state, 
+        area: param.area, 
         contact: param.contact, 
         email: param.email, 
         agentcode: param.agentcode,
+        gender: param.gender,
+        race: param.race,
+        existing_unifi: param.existingUnifi,
+        alt_num: param.altNum,
+        remark: param.remark,        
     }
 
-    axios.post(`${API_URL}/casecrm_submitorder.php`, postParam)
+    axios.post(
+        `${API_URL}/casecrm_submitorder.php`, 
+        new URLSearchParams(postParam).toString(), 
+        {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }
+    )
         .then(res => {
             const data = res.data
-            console.log('res', res);
-            emit('update-record', data.ref_no)
+            if (data instanceof Array) {
+                const firstItem = data[0];
+                if (firstItem.status == 0) {
+                    delete firstItem["status"]
+                    const errKey = Object.keys(firstItem)[0]
+                    error.value = firstItem[errKey] 
+                } else {
+                    if (firstItem.status == 1 && firstItem['ref_number'])
+                        emit('update-record', firstItem['ref_number'])
+                }
+            }         
         })
 }
 

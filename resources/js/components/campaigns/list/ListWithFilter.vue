@@ -1,5 +1,6 @@
 <script setup>
 import axios from '@axios';
+import CustomFilter from './CustomFilter.vue';
 import FilterTabs from './FilterTabs.vue';
 import FilteredList from './FilteredList.vue';
 
@@ -8,38 +9,27 @@ const props = defineProps({
     type: Number,
     required: true
   },
-  date_filter: {
-    type: String,
-    required: false
-  }
 })
 
 const filterList = ref({})
 const dataList = ref([])
 const status = ref("Default")
 const sub_status = ref("")
+const isNavDrawerOpen = ref(false)
+const isCustom = ref(false)
 
-watch(props, () => {
-  if (!props.date_filter)
-    return
-
-  const [start_date, end_date] = props.date_filter.split(" to ")
-  if (start_date && end_date) {
-    getCampaignDetailList(start_date, end_date)
-  }
-})
-
-const getCampaignDetailList = (start_date, end_date) => {
+const getCampaignDetailList = (param) => {
 
   axios.post(`/admin/campaigns/${props.campaign_id}/detail`, {
     status: status.value,
     sub_status: sub_status.value,
-    start_date, 
-    end_date 
+    ...param 
   })
     .then(res => {
-      const _filterdList = {}
+      const _filterdList = []
       const { counts_status, counts_substatus, list } = res.data
+
+      let default_count, submission_count;
 
       for (var status of counts_status) {
         const key = status.progressStatus == '' ? 'Default' : status.progressStatus
@@ -47,13 +37,34 @@ const getCampaignDetailList = (start_date, end_date) => {
         const items = {
           'All': status.count
         }
-        if (key != 'Default')
+        if (key == 'Default') {
+
+          if (status.count != 0) {
+            default_count = {key, items}
+          }
+            
+        } else if (key == 'submission') {
+          
+          if (status.count != 0) {
+            submission_count = {key, items}
+          }            
+        
+        } else {
           counts_substatus.filter(substatus => substatus.progressStatus == status.progressStatus)
             .forEach(substatus => {
               items[substatus.progressSubStatus] = substatus.count
             });
 
-        _filterdList[`${key}`] = items
+          _filterdList.push({key, items})
+        } 
+      }
+
+      if (default_count) {
+        _filterdList.unshift(default_count)
+      }
+
+      if (submission_count) {
+        _filterdList.push(submission_count)
       }
 
       filterList.value = _filterdList
@@ -64,9 +75,31 @@ const getCampaignDetailList = (start_date, end_date) => {
 const setFilter = (filter) => {
   if (status.value != filter.status || sub_status.value != filter.sub_status) {
     status.value = filter.status
-    sub_status.value = filter.sub_status
+    sub_status.value = filter.sub_status    
+    isCustom.value = false
     getCampaignDetailList()
   }  
+}
+
+const openFilterNavigation = () => {
+  isNavDrawerOpen.value = true
+}
+
+const closeFilterNavigation = () => {
+  isNavDrawerOpen.value = false
+}
+
+const applyCustomFilter = (param) => {
+  getCampaignDetailList(param)
+  if (
+    param.applicantname.length == 0 && 
+    param.applicantidentity.length == 0 &&
+    (!param.start_date || param.start_date.length == 0) &&   
+    (!param.end_date || param.end_date.length == 0)
+  )
+    isCustom.value = false
+  else
+    isCustom.value = true
 }
 
 onMounted(() => {
@@ -81,10 +114,17 @@ onMounted(() => {
           :filterList="filterList"
           :status = "status"
           :sub_status="sub_status"
+          :is_custom="isCustom"
+          @set-custom-filter="openFilterNavigation"
           @set-filter="setFilter" />
 
         <FilteredList 
           class="mt-2" 
           :data="dataList"/>
+
+        <CustomFilter 
+          :isNavDrawerOpen="isNavDrawerOpen"
+          @close-custom-filter="closeFilterNavigation"
+          @apply-custom-filter="applyCustomFilter" />
     </div>
 </template>

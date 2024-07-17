@@ -7,7 +7,7 @@
                     class="mr-4 my-4"
                     color="error"
                     @click="navigateMain">
-                    Return
+                    Back to Main
                 </VBtn>
                 <VBtn @click="openSubmitDialog">
                     Submit
@@ -17,10 +17,10 @@
         <VCardText class="pl-8">
             <VRow>                
                 <VCol 
-                    cols="12" >
+                    cols="12">
                     <div class="font-italic">
-                        <b>Campaign Detail ID:</b> <span class="ml-2 text-primary"> #{{ detail.id }}</span>
-                        <b>Campaign Reference Number:</b> <span class="ml-2 text-primary"> #{{ detail.ref_no }}</span>
+                        <b>Campaign Detail ID: </b> <span class="mx-2 text-primary"> #{{ detail.id }}</span>
+                        <b>Campaign Reference Number: </b> <span class="ml-2 text-primary"> #{{ detail.ref_no }}</span>
                     </div>
                 </VCol>
             </VRow>
@@ -86,7 +86,7 @@
                 v-model="isSuccess"
                 :timeout="1000"
                 location="top end"
-                color="error"
+                color="success"
             >
                 Status has been successfully updated.
             </VSnackbar>
@@ -141,10 +141,19 @@ const convertCategory = (_categories) => _categories.map(item => ({
 
 const sub_categories = computed(()=> {
     const category = detail.value.progressStatus
+    const sub_category = detail.value.progressSubStatus
     if (category == undefined)
         return []
 
-    return all_sub_categories.value.filter(item => item.parent == category)
+    const arr = all_sub_categories.value.filter(item => item.parent == category)
+
+    if (sub_category) {
+        const subIdx = arr.findIndex(item => item.value == sub_category)
+        if (subIdx == -1)
+            detail.value.progressSubStatus = ""
+    }
+
+    return arr
 })
 
 const navigateMain = () => {
@@ -157,6 +166,7 @@ const getCategories = () => {
             const { data } = res.data
             categories.value = convertCategory(data.categories)
             all_sub_categories.value = convertCategory(data.sub_categories)
+            getCampaignDetailInfo()
         })
 }
 
@@ -164,7 +174,14 @@ const getCampaignDetailInfo = () => {
     axios.get(`/campaign-detail/${id}`)
         .then(res => {
             const { campaign_detail } = res.data
-            detail.value = campaign_detail
+
+            const categoryItem = categories.value.find(item => item.title == campaign_detail.progressStatus)
+            const subCategoryItem = all_sub_categories.value.find(item => item.title == campaign_detail.progressSubStatus)
+            detail.value = {
+                ...campaign_detail, 
+                progressStatus: categoryItem == null? '' : categoryItem.value, 
+                progressSubStatus: subCategoryItem == null? '' : subCategoryItem.value, 
+            }            
         })
 }
 
@@ -203,6 +220,7 @@ const update = () => {
 
 const updateDetailRefNumber = (ref_no) => {
     isDialogVisible.value = false
+    detail.value.ref_no = ref_no
     axios.put(`/campaign-detail/${id}/ref-number`, {
         ref_no
     })
@@ -215,7 +233,6 @@ const updateDetailRefNumber = (ref_no) => {
 }
 
 onMounted(() => {
-    getCampaignDetailInfo()
     getCategories()
 })
 

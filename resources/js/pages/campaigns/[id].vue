@@ -5,12 +5,6 @@
         <VCardTitle>Campaign Detail</VCardTitle>
         <template v-if="isAdminOrTeamLeader()" #append>
           <div class="d-flex align-end justify-end">
-            <AppDateTimePicker
-              v-model="dateFilter"
-              label="Range"
-              class="mr-4"
-              :config="{ mode: 'range' }"
-            />
 
             <ActionButton 
               class="mr-2"
@@ -52,12 +46,12 @@
           <ManualAssign @update-action="setAction"/>
         </div>
 
-        <!-- <div v-if="action == 'manual-assign2'">
+        <div v-if="action == 'manual-assign2'">
           <ManualAssign2 />
-        </div> -->
+        </div>
 
         <div v-if="action == 'list'">
-          <ListWithFilter :campaign_id="id" :date_filter="dateFilter"/>
+          <ListWithFilter :campaign_id="id" />
         </div>
 
         <div v-if="action == 'accumulate'">
@@ -77,7 +71,6 @@
   </div>
 </template>
 <script setup>
-import AppDateTimePicker from "@/@core/components/app-form-elements/AppDateTimePicker.vue";
 import ActionButton from "@/components/campaigns/ActionButton.vue";
 import Blocking from "@/components/campaigns/Blocking.vue";
 import AutoAssign from "@/components/campaigns/assign/AutoAssign.vue";
@@ -116,7 +109,6 @@ const progressList = [
 const route = useRoute()
 const id = parseInt(route.params.id);
 const action = ref("list")
-const dateFilter = ref()
 
 const setAction = (name) => {
   action.value = name;

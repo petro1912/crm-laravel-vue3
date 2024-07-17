@@ -159,6 +159,8 @@ class CampaignController extends Controller
         $sub_status = $request->sub_status;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
+        $applicantname = $request->applicantname;
+        $applicantidentity = $request->applicantidentity;
 
         $where = [
             'campaign_id' => $id
@@ -193,15 +195,26 @@ class CampaignController extends Controller
         if ($sub_status != 'All')
             $where['progressSubStatus'] = $sub_status;
 
-        $builder = CampaignDetail::where($where);
+        $list = [];
         if (isset($start_date) && isset($end_date)) {
-            $builder = $builder->whereBetween('currentstatusdate', [
+            $list = CampaignDetail::whereBetween('currentstatusdate', [
                 $start_date,
                 $end_date,
-            ]);
+            ])->get();
+        } else if (isset($applicantname) || isset($applicantidentity)) {
+            if (!isset($applicantname))
+                $applicantname = '';
+
+            if (!isset($applicantidentity))
+                $applicantidentity = '';
+
+            $list = CampaignDetail::where('applicantname',  'LIKE', "%{$applicantname}%")
+                ->where('applicantidentity', 'LIKE', "%{$applicantidentity}%")
+                ->get();
+        } else {
+            $list = CampaignDetail::where($where)->get();
         }
 
-        $list = $builder->get();
 
         return response()->json([
             "counts_status" => $counts,
@@ -239,6 +252,8 @@ class CampaignController extends Controller
 
         $campaign_detail = CampaignDetail::find($id);
         $campaign_detail->ref_no = $request->ref_no;
+        $campaign_detail->progressStatus = 'submission';
+        $campaign_detail->progressSubStatus = 'submission';
 
         $campaign_detail->save();
 

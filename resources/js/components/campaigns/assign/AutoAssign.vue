@@ -151,7 +151,7 @@ onMounted(() => {
                     class="mr-4 my-4"
                     color="error"
                     @click="navigateMain">
-                    Return
+                    Back to Main
                 </VBtn>
 
                 <VBtn 

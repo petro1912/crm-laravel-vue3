@@ -160,7 +160,11 @@ const defaultSubmitInfo = {
     product: '',
     package: '',
     fullname: '',
-    passportNo: '',
+    gender: 'male',
+    race: 'malay',
+    altNum: '',
+    existingUnifi: 'yes',
+    nric: '',
     address1: '',
     address2: '',
     address3: '',
@@ -170,14 +174,19 @@ const defaultSubmitInfo = {
     contact: '',
     email: '',
     citizen: '',
-    agentcode: ''
+    agentcode: '',
+    remark: ''
 }
 
 const submitInfoLabels = {
     product: 'PRODUCT',
     package: 'PACKAGE',
     fullname: 'FULL NAME as per NRIC',
-    passportNo: 'NRIC / PASSPORT NO',
+    gender: 'GENDER',
+    race: 'RACE',
+    altNum: 'ALT NUM',
+    existingUnifi: 'EXISTING UNIFI',
+    nric: 'NRIC / PASSPORT NO',
     address1: 'ADDRESS 1',
     address2: 'ADDRESS 2',
     address3: 'ADDRESS 3',
@@ -187,12 +196,29 @@ const submitInfoLabels = {
     contact: 'CONTACT',
     email: 'EMAIL',
     citizen: 'CITIZEN',
-    agentcode: 'AGENT CODE'
+    agentcode: 'AGENT CODE',
+    remark: 'REMARK'
 }
 
+const YES_NO = [
+    "yes",
+    "no",
+]
+
+const GENDERS = [
+    "male",
+    "female"
+]
+
+const RACE = [
+    "malay",
+    "chinese",
+    "indian",
+    "other"
+]
+
 export {
-    ALL,
-    ROLE_ADMIN, ROLE_AGENT, ROLE_LEADER, allRoles,
+    ALL, GENDERS, RACE, ROLE_ADMIN, ROLE_AGENT, ROLE_LEADER, YES_NO, allRoles,
     allStatus, defaultCampaign, defaultCategory, defaultSubmitInfo, defaultUser, filter_user_states, rolesByAdmin, rolesByManager,
     rolesByManagerForFilter, rolesByTeamLeader, submitInfoLabels, tableHeaders, tableOption, user_states
 }
