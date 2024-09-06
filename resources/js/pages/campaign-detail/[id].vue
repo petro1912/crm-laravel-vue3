@@ -197,25 +197,34 @@ const update = () => {
         return
     } 
 
-    if (!campaignAgentRemark || campaignAgentRemark == '') {
-        error.value = "Progress Sub Status must not be empty!"
-        return
-    }
+    // if (!campaignAgentRemark || campaignAgentRemark == '') {
+    //     error.value = "Progress Sub Status must not be empty!"
+    //     return
+    // }
     
     progressStatus = categories.value.find(item => item.value == progressStatus).title
     progressSubStatus = sub_categories.value.find(item => item.value == progressSubStatus).title
 
-    axios.put(`/campaign-detail/${id}/status`, {
-        progressStatus, 
-        progressSubStatus, 
-        campaignAgentRemark
-    })
-        .then(res => {
-            const { status } = res.data
-            if (status == 'success') {
-                isSuccess.value = true
-            }
-        })
+    try {
+        
+        axios.put(`/campaign-detail/${id}/status`, {
+            progressStatus, 
+            progressSubStatus, 
+            campaignAgentRemark
+        }).then((res) => {
+          const { status } = res.data
+          if (status == 'success') {
+              isSuccess.value = true
+          }
+          // console.log(router.options.history.state);
+          if (router.options.history.state.back)
+            router.push(router.options.history.state.back);
+        })        
+        
+    } catch (error) {
+        console.error('Error occurred:', error);
+    }
+        
 }
 
 const updateDetailRefNumber = (ref_no) => {

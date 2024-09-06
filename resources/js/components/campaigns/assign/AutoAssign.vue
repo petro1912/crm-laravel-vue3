@@ -85,7 +85,7 @@ const getUnassignedCount = () => {
             available.value = unassigned_count
             total.value = total_count
             if (total_count != 0)
-                availablePercent.value = unassigned_count * 100 / total_count
+                availablePercent.value = 100 - unassigned_count * 100 / total_count
         })
 }
 
@@ -113,7 +113,7 @@ onMounted(() => {
                 </VAlert>
 
                 <div class="mt-4 font-weight-bold">
-                    <small>Available List</small>
+                    <small>Assigned Count</small>
                 </div>
 
                 <VProgressLinear
@@ -122,8 +122,8 @@ onMounted(() => {
                     striped />
 
                 <div class="text-right">
-                    <small class="font-weight-bold">{{ available }}</small> 
-                    <small> / {{ total }}</small>
+                    <small class="font-weight-bold">unassigned {{ available }}</small> 
+                    <small> / total {{ total }}</small>
                 </div>
 
                 <AppSelect

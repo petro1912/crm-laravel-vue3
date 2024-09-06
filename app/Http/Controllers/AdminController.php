@@ -159,6 +159,7 @@ class AdminController extends Controller
     public function deleteProgressCategory(Request $request, $id)
     {
         Category::find($id)->delete();
+        Category::where(["parent_id" => $id])->delete();
 
         $data = $this->_getAllProgressCategories();
 

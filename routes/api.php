@@ -36,8 +36,10 @@ Route::group(['prefix' => 'users', 'middleware' => 'auth:sanctum'], function () 
 
     Route::post('/', [UserController::class, 'store']);
     Route::put('/', [UserController::class, 'update']);
+    Route::post('/update-password', [UserController::class, 'updatePassword']);
     Route::put('/activate/{id}', [UserController::class, 'activate']);
     Route::delete('/{id}', [UserController::class, 'destroy']);
+    Route::put('/{id}/reset-password', [UserController::class, 'resetPassword']);
 });
 
 Route::group(['prefix' => 'admin', 'middleware' => 'auth:sanctum'], function () {
@@ -69,6 +71,9 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:sanctum'], function () 
         Route::get('/{id}/count-unassigned', [CampaignController::class, 'getUnassignedCount']);
         Route::post('/{id}/assign', [CampaignController::class, 'assign']);
 
+        Route::get('/{id}/count-unassigned-filter', [CampaignController::class, 'getUnassignedCountWithFilter']);
+        Route::post('/{id}/assign-filter', [CampaignController::class, 'assignWithFilter']);
+
         Route::post('/{id}/detail', [CampaignController::class, 'getCampaignDetail']);
         Route::post('/{id}/import', [CampaignController::class, 'importCampaignDetail']);
     });
@@ -80,9 +85,6 @@ Route::group(['prefix' => 'campaign-detail', 'middleware' => 'auth:sanctum'], fu
     Route::get('/{id}', [CampaignController::class, 'getCampaignDetailInfo']);
 });
 
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware('auth:sanctum')->get('/update-password', '');
 
 Route::get('/placeholder-pwd', [AuthController::class, 'genPassword']);

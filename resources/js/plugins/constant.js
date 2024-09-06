@@ -53,6 +53,12 @@ const defaultCategory = {
     parent_id: -1
 }
 
+const no_filter = {
+    value: -1, 
+    title: ALL,
+    parent: -1
+}
+
 const defaultCampaign = {
     id: -1,
     name: "",
@@ -200,6 +206,40 @@ const submitInfoLabels = {
     remark: 'REMARK'
 }
 
+const defaultCampaignDetailFilter = {
+    applicanttypename: '',
+    applicantidentity: '',
+    applicantcompany: '',
+    applicantbusinessregistrationnumber: '',
+    applicantname: '',
+    applicantmobile: '',
+    applicantfax: '',
+    applicantaddress1: '',
+    applicantaddress2: '',
+    applicantaddress3: '',
+    applicantpostcode: '',
+    applicantcity: '',
+    applicantstate: '',
+    applicantemail: '',
+    installationaddress1: '',
+    installationaddress2: '',
+    installationaddress3: '',
+    installationpostcode: '',
+    installationcity: '',
+    installationstate: '',
+    installationpropertytype: '',
+    installationcontactperson: '',
+    installationcontactnumber: '',
+    billingaddress1: '',
+    billingaddress2: '',
+    billingaddress3: '',
+    billingpostcode: '',
+    billingcity: '',
+    billingstate: '',
+    productgroup: '',
+    productname: '',
+}
+
 const YES_NO = [
     "yes",
     "no",
@@ -218,8 +258,7 @@ const RACE = [
 ]
 
 export {
-    ALL, GENDERS, RACE, ROLE_ADMIN, ROLE_AGENT, ROLE_LEADER, YES_NO, allRoles,
-    allStatus, defaultCampaign, defaultCategory, defaultSubmitInfo, defaultUser, filter_user_states, rolesByAdmin, rolesByManager,
+    ALL, GENDERS, RACE, ROLE_ADMIN, ROLE_AGENT, ROLE_LEADER, YES_NO, allRoles, allStatus, defaultCampaign, defaultCampaignDetailFilter, defaultCategory, defaultSubmitInfo, defaultUser, filter_user_states, no_filter, rolesByAdmin, rolesByManager,
     rolesByManagerForFilter, rolesByTeamLeader, submitInfoLabels, tableHeaders, tableOption, user_states
 }
 

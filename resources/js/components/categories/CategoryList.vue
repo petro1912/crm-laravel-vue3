@@ -193,10 +193,13 @@ const showCategory = (id) => {
 }
 
 const createCategoryDialog = (isMain) => {
-    if (!isMain)
-        parentItem.value = categories_selector.value.find(item => item.value == selected_category.value)
+    console.log(selected_category.value)
+    if (!isMain) {
+        const sItem = categories_selector.value.find(item => item.value == selected_category.value);
+        parentItem.value = sItem ? sItem.value : -1;
+    }        
     else
-        parentItem.value = "Main"
+        parentItem.value = -1
 
     editCategoryItem.value = defaultCategory
     createDialog.value = true
@@ -226,11 +229,13 @@ const saveCategory = () => {
     const parent = parentItem.value
     delete category.id
 
+    console.log('parent', parent)
+
     if (!parent) {
         return
     }
 
-    const pitem = categories_selector.value.find(item => item.value == parent.value)
+    const pitem = categories_selector.value.find(item => item.value == parent)
     if (pitem == null || pitem.value == -1) {
         delete category.parent_id
     } else {
@@ -245,6 +250,7 @@ const saveCategory = () => {
                 sub_categories.value = data.sub_categories
 
                 createDialog.value = false
+                showCategory(parent)
             })
     } else {
         axios.put(`${props.baseUrl}/${category_id}`, category)
@@ -254,6 +260,7 @@ const saveCategory = () => {
                 sub_categories.value = data.sub_categories
 
                 createDialog.value = false
+                showCategory(parent)
             }) 
     }
         

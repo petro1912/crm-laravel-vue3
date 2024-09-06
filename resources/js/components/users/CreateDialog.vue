@@ -1,5 +1,5 @@
 <script setup>
-import { ROLE_AGENT, rolesByManager, user_states } from '@/plugins/constant.js';
+import { ROLE_AGENT, defaultUser, rolesByManager, user_states } from '@/plugins/constant.js';
 import axios from '@axios';
 import { toRef } from 'vue';
 import AvatarPicker from './AvatarPicker.vue';
@@ -40,35 +40,45 @@ const close = () => {
     emit('close-dialog', false)
 }
 
+const clearError = () => setTimeout(() => {error.value = ""}, 1500)
+
 const save = () => {
   const _user = user.value
+  console.log(_user)
   if (_user.username.length == 0) {
     error.value = 'Username must be not empty.'
+    clearError();
     return;
   }
 
-  if (_user.role != 'Agent') {
-    error.value = 'User role must be agent.'
-    return;
+  if (!/^[a-zA-Z0-9_]+$/.test(_user.username)) {
+    error.value = "Username must contain alphanumeric and underscore characters only."
+    clearError();
+    return
   }
 
-  if (_user.team_leader == 0 || _user.team_leader == "") {
-    error.value = 'You must select team leader.'
-    return;
+  if (_user.role == 'Agent') {
+    if (_user.team_leader == 0 || _user.team_leader == "") {
+      error.value = 'You must select team leader.'
+      return;
+    }
   }
 
   if (_user.status != 'active' && _user.status != 'inactive') {
     error.value = 'Status is wrong.'
+    clearError();
     return;
   }
     
   if (!props.isUpdate && _user.password.length == 0) {
     error.value = 'Password must be not empty.'
+    clearError();
     return;
   }
 
   if (!props.isUpdate && _user.password != password_confirm.value) {
     error.value = 'Password mismatch.'
+    clearError();
     return;
   }
 
@@ -76,11 +86,35 @@ const save = () => {
     axios.put('/users', _user)
       .then((res) => {
         emit('close-dialog', true)
+        user.value = defaultUser
+      })
+      .catch((err)=> {
+        if (err.response) {
+          console.log(err.response.data);
+          console.log(err.response.status);
+          console.log(err.response.headers);
+        } else if (err.request) {
+          console.log(err.request);
+        } else {
+          error.value = err.message
+        }
       })
   else
     axios.post('/users', _user)
       .then((res) => {
         emit('close-dialog', true)
+        user.value = defaultUser
+      })
+      .catch((err) => {
+        if (err.response) {
+          console.log(err.response.data);
+          console.log(err.response.status);
+          console.log(err.response.headers);
+        } else if (err.request) {
+          console.log(err.request);
+        } else {
+          error.value = err.message
+        }
       })
 
 }
@@ -244,7 +278,6 @@ onMounted(() => {
       v-model="isError"
       :timeout="1000"
       location="top end"
-      variant="tonal"
       color="error"
     >
       {{ error }}

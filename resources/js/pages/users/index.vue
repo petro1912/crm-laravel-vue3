@@ -18,6 +18,9 @@ const showDialog = ref(false)
 const deleteDialog = ref(false)
 const deletedUserId = ref(-1)
 
+const resetPasswordDialog = ref(false)
+const resetUserId = ref(-1)
+
 const resolveStatusVariant = (status) => {
   if (status === 'active')
     return { color: 'success', text: status }
@@ -28,6 +31,7 @@ const resolveStatusVariant = (status) => {
 const openCreateDialog = () => {
     showDialog.value = true
     isUpdate.value = false
+    editUser.value = defaultUser
 }
 
 const closeCreateDialog = (changed) => {
@@ -67,6 +71,25 @@ const deleteItemConfirm = () => {
             filteredData.value = users
             deleteDialog.value = false
             deletedUserId.value = -1
+        })    
+}
+
+
+const openResetPasswordDialog = (id) => {
+    resetPasswordDialog.value = true
+    resetUserId.value = id
+}
+
+const closePassword = () => {
+    resetPasswordDialog.value = true
+    resetUserId.value = -1
+}
+
+const resetPasswordConfirm = () => {
+    axios.put(`/users/${resetUserId.value}/reset-password`)
+        .then((res) => {
+            resetPasswordDialog.value = false
+            resetUserId.value = -1
         })    
 }
 
@@ -148,6 +171,10 @@ onMounted(() => {
                         </VChip>
                     </template>
 
+                    <template #item.team_leader="{ item }">
+                        {{item.raw.leader ? item.raw.leader.name : ""}}
+                    </template>
+
                     <!-- Actions -->
                     <template #item.actions="{ item }">
                         <div class="d-flex gap-1">
@@ -156,7 +183,10 @@ onMounted(() => {
                             </IconBtn>
                             <IconBtn @click="deleteUserDialog(item.raw.id)">
                                 <VIcon icon="mdi-delete-outline" />
-                            </IconBtn>
+                            </IconBtn>                            
+                            <VBtn rounded @click="openResetPasswordDialog(item.raw.id)">
+                                Reset Password
+                            </VBtn>
                         </div>
                     </template>
                     
@@ -222,6 +252,41 @@ onMounted(() => {
                                 color="success"
                                 variant="elevated"
                                 @click="deleteItemConfirm"
+                            >
+                                OK
+                            </VBtn>
+
+                            <VSpacer />
+                        </VCardActions>
+                    </VCard>
+                </VDialog>
+
+                <VDialog
+                    v-model="resetPasswordDialog"
+                    max-width="600px">
+                    <VCard>
+                        <VCardTitle class="text-center px-8 py-8">
+                            Are you sure you want to reset password<br/> of this user (Password: 123456)?
+                        </VCardTitle>
+                        <div>
+                          
+                        </div>
+
+                        <VCardActions>
+                            <VSpacer />
+
+                            <VBtn
+                                color="error"
+                                variant="outlined"
+                                @click="closePassword"
+                            >
+                                Cancel
+                            </VBtn>
+
+                            <VBtn
+                                color="success"
+                                variant="elevated"
+                                @click="resetPasswordConfirm"
                             >
                                 OK
                             </VBtn>

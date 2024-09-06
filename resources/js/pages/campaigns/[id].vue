@@ -27,13 +27,6 @@
               @click="() => setAction('list')">
               Manage
             </VBtn>
-
-            <!-- <VBtn 
-              color="error"
-              rounded="pill"
-              @click="() => setAction('blocking')">
-              Blocking
-            </VBtn> -->
           </div>
         </template>
       </VCardItem>
@@ -88,10 +81,6 @@ const assignList = [
   {
     title: 'Manual Assign',
     value: 'manual-assign',
-  },
-  {
-    title: 'Manual Assign2',
-    value: 'manual-assign2',
   },
 ]
 

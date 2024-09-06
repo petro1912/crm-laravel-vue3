@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
@@ -77,7 +78,7 @@ class UserController extends Controller
         }
 
         $user = new User([
-            'username'  => $request->name,
+            'username'  => $request->username,
             'name'  => $request->name,
             'email' => $request->email,
             'role' => $request->role,
@@ -114,7 +115,7 @@ class UserController extends Controller
 
         $user = User::find($request->id);
 
-        $user->username  = $request->name;
+        $user->username  = $request->username;
         $user->name  = $request->name;
         $user->email = $request->email;
         $user->role = $request->role;
@@ -131,6 +132,37 @@ class UserController extends Controller
         } else {
             return response()->json(['error' => 'Provide proper details']);
         }
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+        $request->validate([
+            'password' => 'required|string',
+            'new_password' => 'required|string',
+        ]);
+
+        if (Hash::check($request->password, $user->password)) {
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return response()->json([
+                'message' => 'success'
+            ]);
+        } else {
+            return response()->json(['error' => 'Current Password doesn\'t match']);
+        }
+    }
+
+    public function resetPassword(Request $request, $id)
+    {
+        $user = User::find($id);
+        $user->password = Hash::make("123456");
+        $user->save();
+
+        return response()->json([
+            'message' => 'success'
+        ]);
     }
 
     public function activate(Request $request, $id)
@@ -173,7 +205,7 @@ class UserController extends Controller
                 'role' => UserRole::AGENT->value
             ];
 
-        $users = User::where($filter)->get();
+        $users = User::with('leader')->where($filter)->get();
 
         return $users;
     }

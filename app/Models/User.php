@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable
 {
@@ -28,7 +29,7 @@ class User extends Authenticatable
         'role',
         'status',
         'caller_id',
-        'contact_nubmer'
+        'contact_number'
     ];
 
     /**
@@ -50,4 +51,9 @@ class User extends Authenticatable
         'status' => UserStatus::class,
         'role' => UserRole::class
     ];
+
+    public function leader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'team_leader');
+    }
 }
