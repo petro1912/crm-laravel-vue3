@@ -1,12 +1,11 @@
 <template>
     <VDataTable
-        :headers="tableHeaders.campaignDetail"
-        :items="data"
-        :items-per-page="options.itemsPerPage"
-        :page="options.page"
-        :show-select="showSelect"
-        @update:options="options = $event"
-        @click:row="goToDetail"
+      :headers="tableHeaders.campaignDetail"
+      :items="data"
+      :items-per-page="options.itemsPerPage"
+      :loading="loading"
+      @update:options="options = $event"
+      @click:row="goToDetail"        
       >
         <template #bottom>
           <VCardText class="mt-8">
@@ -33,7 +32,7 @@
                 <VPagination
                   v-model="options.page"
                   total-visible="5"
-                  :length="Math.ceil(data.length / options.itemsPerPage)"
+                  :length="totalPages"
                 />
               </VCol>
             </VRow>
@@ -43,6 +42,7 @@
 </template>
 <script setup>
 import { tableHeaders, tableOption } from '@/plugins/constant';
+import axios from '@axios';
 import { VDataTable } from 'vuetify/labs/VDataTable';
 
 const props = defineProps({
@@ -50,18 +50,78 @@ const props = defineProps({
     type: Boolean,
     required: false,
   },
-  data: {
-    type: Array,
+  status: {
+    type: String,
     required: true
+  },
+  sub_status: {
+    type: String,
+    required: true
+  },
+  custom_filter: {
+    type: Object,
+    required: false,
+  },
+  campaign_id: {
+    type: Number,
+    required: true
+  },
+  is_custom: {
+    type: Boolean,
+    required: true,
   }
 })
 
 const router = useRouter()
-const data = toRef(props, 'data')
 
+const loading = ref(false)
 const options = ref(tableOption)
+const totalPages = ref(0)
+const status = toRef(props, 'status')
+const sub_status = toRef(props, 'sub_status')
+const is_custom = toRef(props, 'is_custom')
+const data = ref([])
 
 const goToDetail = (evt, row) => {
   router.push(`/campaign-detail/${row.item.raw.id}`)
 }
+
+const fetchPaginatedData = async () => {
+  loading.value = true;
+   
+  const param = {
+    status: status.value,
+    sub_status: sub_status.value,
+    ...props.custom_filter
+  }
+  
+  axios.post(
+    `/admin/campaigns/${props.campaign_id}/list?page=${options.value.page}&itemsPerPage=${options.value.itemsPerPage}`,
+    param
+  ).then(res => {
+    const { total, list } = res.data
+    data.value = list;
+    totalPages.value = Math.ceil(total / options.value.itemsPerPage);
+    loading.value = false;
+  }).catch(error => {
+    console.error('Error fetching data:', error);
+    loading.value = false;
+  })
+ 
+}
+
+watch([
+  () => options.value.page, 
+  () => options.value.itemsPerPage, 
+  status, 
+  sub_status, 
+  is_custom, 
+  () => props.custom_filter
+], () => {
+  fetchPaginatedData()
+})
+
+onMounted(() => {
+  fetchPaginatedData()
+})
 </script>

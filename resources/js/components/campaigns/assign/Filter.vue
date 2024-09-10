@@ -4,6 +4,7 @@ import axios from '@axios';
 
 const categories = ref([])
 const sub_categories = ref([])
+const racenames = ref([])
 
 const filterValue = ref(defaultCampaignDetailFilter)
 
@@ -29,6 +30,12 @@ const getCategories = () => {
             const { data } = res.data        
             categories.value = convertCategory([defaultCategory, ...data.categories])
             sub_categories.value = convertCategory(data.sub_categories)
+        })
+
+    axios.get('/admin/campaigns/racenames')
+        .then(res => {
+          racenames.value = ['All', ...res.data.racenames]   
+          filterValue.value.racename = 'All'
         })
 }
 
@@ -126,6 +133,14 @@ onMounted(() => {
                         class="mt-2"
                         v-model="filterValue.applicantbusinessregistrationnumber"
                         label="Application Business Registration Number"
+                    />
+
+                    <AppSelect
+                        class="mt-2"
+                        :items="racenames"
+                        v-model="filterValue.racename"
+                        variant="outlined"
+                        label="Racename"
                     />
 
                     <VTextField

@@ -216,7 +216,7 @@ const update = () => {
           if (status == 'success') {
               isSuccess.value = true
           }
-          // console.log(router.options.history.state);
+          
           if (router.options.history.state.back)
             router.push(router.options.history.state.back);
         })        

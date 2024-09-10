@@ -110,9 +110,10 @@ const applyCustomFilter = () => {
     const param = customFilter.value
     const date_filter = dateFilter.value
     let start_date = null, end_date = null
-    if (date_filter && date_filter.length >= 24) {
-        [start_date, end_date] = date_filter.split(" to ")
-        console.log(start_date, end_date)
+    if (date_filter && date_filter.length > 0) {
+      [start_date, end_date] = date_filter.split(" to ")
+      if (!end_date)
+        end_date = start_date
     }    
 
     emit("apply-custom-filter", {

@@ -211,6 +211,7 @@ const defaultCampaignDetailFilter = {
     applicantidentity: '',
     applicantcompany: '',
     applicantbusinessregistrationnumber: '',
+    racename: '',
     applicantname: '',
     applicantmobile: '',
     applicantfax: '',

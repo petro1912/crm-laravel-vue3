@@ -21,12 +21,15 @@ const rememberMe = ref(false)
 
 const isError = computed(() => error.value.length > 0)
 const error = ref('')
+const loading = ref(false)
 
 const login = () => {
+  loading.value = true
   axios.post('/auth/login', {
     username: name.value,
     password: password.value
   }).then(r => {
+    loading.value = false
     const { accessToken, userData } = r.data
 
     localStorage.setItem('userData', JSON.stringify(userData))
@@ -34,6 +37,10 @@ const login = () => {
     router.replace('/campaigns')
   }).catch(err => {    
     error.value = 'Unauthorized: Please check your credentials.';
+    loading.value = false
+    setTimeout(() => {
+      error.value = ""
+    }, 1800)
   })
 }
 
@@ -112,6 +119,7 @@ const adminLogin = () => {
                   label="Password"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  @keyup.enter="login"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
 
@@ -130,6 +138,8 @@ const adminLogin = () => {
 
                 <VBtn
                   block
+                  :loading="loading"
+                  :disabled="loading"
                   @click="login"
                 >
                   Login

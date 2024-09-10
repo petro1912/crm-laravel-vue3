@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
-use App\Enums\UserStatus;
+use App\Models\user;
 use App\Models\Campaign;
 use App\Models\CampaignDetail;
 use App\Models\Category;
+use App\Enums\CategoryType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -161,17 +162,9 @@ class CampaignController extends Controller
         return response()->json(['message' => 'Files uploaded and data inserted successfully']);
     }
 
-    public function getCampaignDetail(Request $request, $id)
+    public function getCampaignDetailFilters(Request $request, $id)
     {
         $user = $request->user();
-
-        $status = $request->status;
-        $sub_status = $request->sub_status;
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
-        $applicantname = $request->applicantname;
-        $applicantidentity = $request->applicantidentity;
-
         $where = [
             'campaign_id' => $id
         ];
@@ -194,6 +187,34 @@ class CampaignController extends Controller
             ->get()
             ->toArray();
 
+        return response()->json([
+            "counts_status" => $counts,
+            "counts_substatus" => $counts2
+        ]);
+    }
+
+    public function getCampaignDetailList(Request $request, $id)
+    {
+        $user = $request->user();
+
+        $status = $request->status;
+        $sub_status = $request->sub_status;
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+        $applicantname = $request->applicantname;
+        $applicantidentity = $request->applicantidentity;
+
+        $where = [
+            'campaign_id' => $id
+        ];
+        $whereUser = [];
+
+        if ($user->role == UserRole::TEAM_LEADER)
+            $whereUser['assigned_leader'] = $user->id;
+
+        if ($user->role == UserRole::AGENT)
+            $whereUser['assigned_user'] = $user->id;
+
         if (!isset($status) || $status == 'Default')
             $status = '';
 
@@ -205,32 +226,39 @@ class CampaignController extends Controller
         if ($sub_status != 'All')
             $where['progressSubStatus'] = $sub_status;
 
-        $list = [];
-        if (isset($start_date) && isset($end_date)) {
-            $list = CampaignDetail::whereRaw(
-                "DATE_FORMAT(currentstatusdate, '%Y-%m-%d') BETWEEN ? AND ?",
-                [
-                    $start_date,
-                    $end_date,
-                ]
-            )->get();
-        } else if (isset($applicantname) || isset($applicantidentity)) {
+        $page = $request->input('page', 1); // Default page is 1
+        $itemsPerPage = $request->input('itemsPerPage', 10); // Default items per page
+        $skip = ($page - 1) * $itemsPerPage;
+
+        if ((isset($start_date) && isset($end_date)) || isset($applicantname) || isset($applicantidentity)) {
             if (!isset($applicantname))
                 $applicantname = '';
 
             if (!isset($applicantidentity))
                 $applicantidentity = '';
 
-            $list = CampaignDetail::where('applicantname',  'LIKE', "%{$applicantname}%")
-                ->where('applicantidentity', 'LIKE', "%{$applicantidentity}%")
-                ->get();
+            $builder = CampaignDetail::where('applicantname',  'LIKE', "%{$applicantname}%")
+                ->where('applicantidentity', 'LIKE', "%{$applicantidentity}%");
+
+            if (isset($start_date) && isset($end_date)) {
+                $builder = $builder->whereRaw(
+                    "DATE_FORMAT(currentstatusdate, '%Y-%m-%d') BETWEEN ? AND ?",
+                    [
+                        $start_date,
+                        $end_date,
+                    ]
+                );
+            }
         } else {
-            $list = CampaignDetail::where($where)->get();
+            $builder = CampaignDetail::where($where);
         }
 
+        // $builder = $builder->where($whereUser);
+        $total = $builder->count();
+        $list = $builder->skip($skip)->take($itemsPerPage)->get();
+
         return response()->json([
-            "counts_status" => $counts,
-            "counts_substatus" => $counts2,
+            "total" => $total,
             'list' => $list
         ]);
     }
@@ -364,6 +392,9 @@ class CampaignController extends Controller
         if (isset($request->applicantname) && $request->applicantname != '') {
             $where["applicantname"] = $request->applicantname;
         }
+        if (isset($request->racename) && $request->racename != 'All') {
+            $where["racename"] = $request->racename;
+        }
         if (isset($request->applicantmobile) && $request->applicantmobile != '') {
             $where["applicantmobile"] = $request->applicantmobile;
         }
@@ -482,12 +513,14 @@ class CampaignController extends Controller
                     ->whereNull('assigned_leader')
                     ->limit($request->amount)
                     ->update([
+                        'assigned_date' => date('Y-m-d'),
                         'assigned_leader' => $request->leader
                     ]);
             else
                 CampaignDetail::where($where)
                     ->limit($request->amount)
                     ->update([
+                        'assigned_date' => date('Y-m-d'),
                         'assigned_user' => $request->leader
                     ]);
         } else {
@@ -497,6 +530,7 @@ class CampaignController extends Controller
                     ->inRandomOrder()
                     ->limit($request->amount)
                     ->update([
+                        'assigned_date' => date('Y-m-d'),
                         'assigned_leader' => $request->leader
                     ]);
             else
@@ -504,6 +538,7 @@ class CampaignController extends Controller
                     ->limit($request->amount)
                     ->inRandomOrder()
                     ->update([
+                        'assigned_date' => date('Y-m-d'),
                         'assigned_user' => $request->leader
                     ]);
         }
@@ -543,6 +578,7 @@ class CampaignController extends Controller
                         })
                         ->limit($request->amount)
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_leader' => $request->leader
                         ]);
                 else
@@ -554,6 +590,7 @@ class CampaignController extends Controller
                         })
                         ->limit($request->amount)
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_user' => $request->leader
                         ]);
             } else {
@@ -571,6 +608,7 @@ class CampaignController extends Controller
                         ->where($whereFilter)
                         ->limit($request->amount)
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_user' => $request->leader
                         ]);
             }
@@ -587,6 +625,7 @@ class CampaignController extends Controller
                         ->inRandomOrder()
                         ->limit($request->amount)
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_leader' => $request->leader
                         ]);
                 else
@@ -599,6 +638,7 @@ class CampaignController extends Controller
                         ->limit($request->amount)
                         ->inRandomOrder()
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_user' => $request->leader
                         ]);
             } else {
@@ -609,6 +649,7 @@ class CampaignController extends Controller
                         ->inRandomOrder()
                         ->limit($request->amount)
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_leader' => $request->leader
                         ]);
                 else
@@ -617,6 +658,7 @@ class CampaignController extends Controller
                         ->limit($request->amount)
                         ->inRandomOrder()
                         ->update([
+                            'assigned_date' => date('Y-m-d'),
                             'assigned_user' => $request->leader
                         ]);
             }
@@ -666,6 +708,133 @@ class CampaignController extends Controller
         return response()->json([
             "status" => "success",
             "campaigns" => $campaigns
+        ]);
+    }
+
+    public function getRacenames()
+    {
+        $races = CampaignDetail::select('racename')
+            ->distinct()
+            ->pluck('racename')
+            ->toArray();
+
+        return response()->json([
+            "racenames" => $races
+        ]);
+    }
+
+    public function getLeadProgress(Request $request, $id)
+    {
+        $user = $request->user();
+        if ($user->role == UserRole::AGENT)
+            return response()->json([
+                "status" => [],
+                "lead_progress" => []
+            ]);
+
+        $total_status = "total_leads";
+        $filtered_total_status = "filtered_total_leads";
+        $average = "Average";
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+
+        if (!isset($start_date))
+            $start_date = '2000-01-01';
+
+        if (!isset($end_date))
+            $end_date = date('Y-m-d');
+
+        $status = CampaignDetail::select('progressStatus')
+            ->where(["campaign_id" => $id])
+            ->groupBy('progressStatus')
+            ->pluck("progressStatus")
+            ->toArray();
+
+        // $status = Category::whereNull("parent_id")
+        //     ->where("type", CategoryType::PROGRESS->value)
+        //     ->pluck('name')
+        //     ->toArray();
+
+        if ($user->role == UserRole::ADMIN) {
+            $leaders = User::where([
+                "role" => UserRole::TEAM_LEADER->value
+            ])->pluck("username", "id")->toArray();
+
+            $statusCounts = CampaignDetail::selectRaw(
+                'progressStatus, assigned_leader, count(*) as count'
+            )
+                ->where(["campaign_id" => $id])
+                ->whereBetween('assigned_date', [$start_date, $end_date])
+                ->groupBy('progressStatus', 'assigned_leader')
+                ->get();
+        } else {
+            $leaders = User::where([
+                "role" => UserRole::AGENT->value,
+                "team_leader" => $user->id
+            ])->pluck("username", "id")->toArray();
+
+            $leaderIds = User::where([
+                "role" => UserRole::AGENT->value,
+                "team_leader" => $user->id
+            ])->pluck("id")->toArray();
+
+            $statusCounts = CampaignDetail::selectRaw(
+                'progressStatus, assigned_user, count(*) as count'
+            )
+                ->where(["campaign_id" => $id])
+                ->whereIn('assigned_user', $leaderIds)
+                ->whereBetween('assigned_date', [$start_date, $end_date])
+                ->groupBy('progressStatus', 'assigned_user')
+                ->get();
+        }
+
+
+        $allStatusCount = [];
+        $result = [];
+        foreach ($statusCounts as $record) {
+            if ($user->role == UserRole::ADMIN)
+                $result[$record->assigned_leader][$record->progressStatus] = $record->count;
+            else
+                $result[$record->assigned_user][$record->progressStatus] = $record->count;
+        }
+
+        foreach ($leaders as $uid => $username) {
+            $allStatusCount[$username][$total_status] = 0;
+            $allStatusCount[$username][$filtered_total_status] = 0;
+            foreach ($status as $state) {
+
+                if (!isset($result[$uid][$state]))
+                    $allStatusCount[$username][$state] = 0;
+                else
+                    $allStatusCount[$username][$state] = $result[$uid][$state];
+
+                $allStatusCount[$username][$total_status] += $allStatusCount[$username][$state];
+                if ($state != '')
+                    $allStatusCount[$username][$filtered_total_status] += $allStatusCount[$username][$state];
+            }
+        }
+
+        $allStatusCount[$average][$total_status] = 0;
+        foreach ($leaders as $uid => $username) {
+            foreach ($status as $state) {
+                if (!isset($allStatusCount[$average][$state]))
+                    $allStatusCount[$average][$state] = 0;
+
+                $allStatusCount[$average][$state] += $allStatusCount[$username][$state];
+                $allStatusCount[$average][$total_status] += $allStatusCount[$username][$state];
+            }
+        }
+
+
+        $lead_progress = [];
+        foreach ($allStatusCount as $username => $userStatusCount) {
+            $userStatusCount["name"] = $username;
+            $lead_progress[] = $userStatusCount;
+        }
+
+        return response()->json([
+            "status" => $status,
+            "lead_progress" => $lead_progress
         ]);
     }
 }

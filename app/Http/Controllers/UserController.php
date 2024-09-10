@@ -71,7 +71,7 @@ class UserController extends Controller
             'status' => ['required', new Enum(UserStatus::class)],
         ]);
 
-        if ($request->role == UserRole::AGENT) {
+        if ($request->role == UserRole::AGENT->value) {
             $request->validate([
                 'team_leader' => 'required|integer',
             ]);
@@ -83,7 +83,7 @@ class UserController extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'status' => $request->status,
-            'team_leader' => $request->team_leader,
+            'team_leader' => $request->role == UserRole::AGENT->value ? $request->team_leader : null,
             'caller_id' => $request->caller_id,
             'contact_number' => $request->contact_number,
             'password' => bcrypt($request->password),
@@ -107,7 +107,7 @@ class UserController extends Controller
             'status' => ['required', new Enum(UserStatus::class)],
         ]);
 
-        if ($request->role == UserRole::AGENT) {
+        if ($request->role == UserRole::AGENT->value) {
             $request->validate([
                 'team_leader' => 'required|integer',
             ]);
@@ -120,7 +120,7 @@ class UserController extends Controller
         $user->email = $request->email;
         $user->role = $request->role;
         $user->status = $request->status;
-        $user->team_leader = $request->team_leader;
+        $user->team_leader = $request->role == UserRole::AGENT->value ? $request->team_leader : null;
         $user->caller_id = $request->caller_id;
         $user->contact_number = $request->contact_number;
         $user->password = bcrypt($request->password);
@@ -202,7 +202,8 @@ class UserController extends Controller
         $filter = [];
         if ($me->role != UserRole::ADMIN)
             $filter = [
-                'role' => UserRole::AGENT->value
+                'role' => UserRole::AGENT->value,
+                'team_leader' => $me->id,
             ];
 
         $users = User::with('leader')->where($filter)->get();

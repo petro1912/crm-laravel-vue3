@@ -62,6 +62,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:sanctum'], function () 
 
     Route::group(['prefix' => 'campaigns'], function () {
         Route::get('/', [CampaignController::class, 'getAllCampaigns']);
+        Route::get('/racenames', [CampaignController::class, 'getRacenames']);
 
         Route::post('/', [CampaignController::class, 'createCampaign']);
         Route::put('/', [CampaignController::class, 'updateCampaign']);
@@ -74,7 +75,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:sanctum'], function () 
         Route::get('/{id}/count-unassigned-filter', [CampaignController::class, 'getUnassignedCountWithFilter']);
         Route::post('/{id}/assign-filter', [CampaignController::class, 'assignWithFilter']);
 
-        Route::post('/{id}/detail', [CampaignController::class, 'getCampaignDetail']);
+        Route::get('/{id}/filters', [CampaignController::class, 'getCampaignDetailFilters']);
+        Route::post('/{id}/list', [CampaignController::class, 'getCampaignDetailList']);
         Route::post('/{id}/import', [CampaignController::class, 'importCampaignDetail']);
     });
 });
@@ -82,6 +84,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:sanctum'], function () 
 Route::group(['prefix' => 'campaign-detail', 'middleware' => 'auth:sanctum'], function () {
     Route::put('/{id}/status', [CampaignController::class, 'updateCampaignDetailStatus']);
     Route::put('/{id}/ref-number', [CampaignController::class, 'updateCampaignDetailRefNumber']);
+    Route::post('/{id}/lead-progress', [CampaignController::class, 'getLeadProgress']);
     Route::get('/{id}', [CampaignController::class, 'getCampaignDetailInfo']);
 });
 

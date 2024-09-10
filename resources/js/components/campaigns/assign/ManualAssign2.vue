@@ -5,7 +5,7 @@ const statusAssignLimit = ref("result: 2")
 const statusFilterResult = ref("FOLLOWUP = 2")
 
 const manualAssign = () => {
-    console.log('here');
+    
 }
 
 </script>

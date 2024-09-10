@@ -193,7 +193,6 @@ const showCategory = (id) => {
 }
 
 const createCategoryDialog = (isMain) => {
-    console.log(selected_category.value)
     if (!isMain) {
         const sItem = categories_selector.value.find(item => item.value == selected_category.value);
         parentItem.value = sItem ? sItem.value : -1;
@@ -228,8 +227,6 @@ const saveCategory = () => {
     const category_id = category.id
     const parent = parentItem.value
     delete category.id
-
-    console.log('parent', parent)
 
     if (!parent) {
         return

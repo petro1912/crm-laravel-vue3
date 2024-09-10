@@ -81,7 +81,7 @@ const openResetPasswordDialog = (id) => {
 }
 
 const closePassword = () => {
-    resetPasswordDialog.value = true
+    resetPasswordDialog.value = false
     resetUserId.value = -1
 }
 
@@ -173,6 +173,10 @@ onMounted(() => {
 
                     <template #item.team_leader="{ item }">
                         {{item.raw.leader ? item.raw.leader.name : ""}}
+                    </template>
+
+                    <template #item.created_at="{ item }">
+                        {{new Date(item.raw.created_at).toISOString().slice(0, 19).replace('T', ' ')}}
                     </template>
 
                     <!-- Actions -->

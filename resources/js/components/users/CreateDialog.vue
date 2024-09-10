@@ -44,7 +44,6 @@ const clearError = () => setTimeout(() => {error.value = ""}, 1500)
 
 const save = () => {
   const _user = user.value
-  console.log(_user)
   if (_user.username.length == 0) {
     error.value = 'Username must be not empty.'
     clearError();
@@ -90,11 +89,9 @@ const save = () => {
       })
       .catch((err)=> {
         if (err.response) {
-          console.log(err.response.data);
-          console.log(err.response.status);
-          console.log(err.response.headers);
+          
         } else if (err.request) {
-          console.log(err.request);
+          
         } else {
           error.value = err.message
         }
@@ -107,11 +104,7 @@ const save = () => {
       })
       .catch((err) => {
         if (err.response) {
-          console.log(err.response.data);
-          console.log(err.response.status);
-          console.log(err.response.headers);
         } else if (err.request) {
-          console.log(err.request);
         } else {
           error.value = err.message
         }

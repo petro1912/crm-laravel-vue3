@@ -12,22 +12,22 @@ const props = defineProps({
 })
 
 const filterList = ref({})
-const dataList = ref([])
 const status = ref("Default")
 const sub_status = ref("")
 const isNavDrawerOpen = ref(false)
 const isCustom = ref(false)
+const filter_param = ref({})
 
 const getCampaignDetailList = (param) => {
 
-  axios.post(`/admin/campaigns/${props.campaign_id}/detail`, {
+  axios.get(`/admin/campaigns/${props.campaign_id}/filters`, {
     status: status.value,
     sub_status: sub_status.value,
     ...param 
   })
     .then(res => {
       const _filterdList = []
-      const { counts_status, counts_substatus, list } = res.data
+      const { counts_status, counts_substatus } = res.data
 
       let default_count, submission_count;
 
@@ -68,7 +68,6 @@ const getCampaignDetailList = (param) => {
       }
 
       filterList.value = _filterdList
-      dataList.value = list
     })
 }
 
@@ -77,7 +76,7 @@ const setFilter = (filter) => {
     status.value = filter.status
     sub_status.value = filter.sub_status    
     isCustom.value = false
-    getCampaignDetailList()
+    // getCampaignDetailList()
   }  
 }
 
@@ -90,16 +89,20 @@ const closeFilterNavigation = () => {
 }
 
 const applyCustomFilter = (param) => {
-  getCampaignDetailList(param)
+  // getCampaignDetailList(param)
   if (
     param.applicantname.length == 0 && 
     param.applicantidentity.length == 0 &&
     (!param.start_date || param.start_date.length == 0) &&   
     (!param.end_date || param.end_date.length == 0)
-  )
+  ) {
     isCustom.value = false
-  else
+    filter_param.value = {}
+  } else {
     isCustom.value = true
+    filter_param.value = param
+  }
+    
 }
 
 onMounted(() => {
@@ -120,7 +123,11 @@ onMounted(() => {
 
         <FilteredList 
           class="mt-2" 
-          :data="dataList"/>
+          :campaign_id="props.campaign_id"
+          :status = "status"
+          :sub_status="sub_status"
+          :is_custom="isCustom"
+          :custom_filter="filter_param" />
 
         <CustomFilter 
           :isNavDrawerOpen="isNavDrawerOpen"
