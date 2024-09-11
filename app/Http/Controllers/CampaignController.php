@@ -253,7 +253,7 @@ class CampaignController extends Controller
             $builder = CampaignDetail::where($where);
         }
 
-        // $builder = $builder->where($whereUser);
+        $builder = $builder->where($whereUser);
         $total = $builder->count();
         $list = $builder->skip($skip)->take($itemsPerPage)->get();
 
@@ -518,6 +518,7 @@ class CampaignController extends Controller
                     ]);
             else
                 CampaignDetail::where($where)
+                    ->whereNull('assigned_user')
                     ->limit($request->amount)
                     ->update([
                         'assigned_date' => date('Y-m-d'),
@@ -535,6 +536,7 @@ class CampaignController extends Controller
                     ]);
             else
                 CampaignDetail::where($where)
+                    ->whereNull('assigned_user')
                     ->limit($request->amount)
                     ->inRandomOrder()
                     ->update([
@@ -583,6 +585,7 @@ class CampaignController extends Controller
                         ]);
                 else
                     CampaignDetail::where($where)
+                        ->whereNull('assigned_user')
                         ->where($whereFilter)
                         ->where(function ($query) {
                             $query->whereNull('progressStatus')
@@ -605,6 +608,7 @@ class CampaignController extends Controller
                         ]);
                 else
                     CampaignDetail::where($where)
+                        ->whereNull('assigned_user')
                         ->where($whereFilter)
                         ->limit($request->amount)
                         ->update([
@@ -630,6 +634,7 @@ class CampaignController extends Controller
                         ]);
                 else
                     CampaignDetail::where($where)
+                        ->whereNull('assigned_user')
                         ->where($whereFilter)
                         ->where(function ($query) {
                             $query->whereNull('progressStatus')
@@ -654,6 +659,7 @@ class CampaignController extends Controller
                         ]);
                 else
                     CampaignDetail::where($where)
+                        ->whereNull('assigned_user')
                         ->where($whereFilter)
                         ->limit($request->amount)
                         ->inRandomOrder()
