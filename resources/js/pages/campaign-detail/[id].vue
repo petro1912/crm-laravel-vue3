@@ -32,7 +32,9 @@
                     v-if="detail != undefined"
                     class="d-flex justify-between">
                     <div class="font-weight-bold text-sm">{{item.title }}:</div> 
-                    <div>{{ detail[item.key] || '--' }}</div>
+                    <div>{{ 
+                      detailItemValue(detail, item.key)
+                    }}</div>
                 </VCol>
             </VRow>
             <VDivider class="my-6" />
@@ -117,6 +119,15 @@ const isError = computed(() => error.value.length > 0)
 const error = ref('')
 
 const tableHeader = tableHeaders.campaignDetail.filter(item => item.key != 'id' && item.key != 'campaignAgentRemark')
+
+const detailItemValue = (detail, key) => {
+  if (key == 'assigned_leader')
+    return detail['leader']?.name
+  else if (key == 'assigned_agent')
+    return detail['agent']?.name
+  else
+  return detail[key] || '--' 
+}
 
 const props = defineProps({
   date_filter: {

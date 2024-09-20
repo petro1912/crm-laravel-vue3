@@ -122,6 +122,8 @@ const tableHeaders = {
         {key: "id", title: "id"},
         {key: "campaignAgentRemark", title: "Campaign Agent Remark"},
         {key: "currentstatusdate", title: "Current Status Date"},
+        {key: "assigned_leader", title: "Assigned Leader" },
+        {key: "assigned_agent", title: "Assigned Agent" },
         {key: "applicanttypename", title: "Applicant Type Name"},
         {key: "applicantidentity", title: "Applicant Identity"},    
         {key: "applicantcompany", title: "Applicant Company"},

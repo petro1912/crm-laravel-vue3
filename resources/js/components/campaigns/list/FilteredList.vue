@@ -1,12 +1,19 @@
 <template>
     <VDataTable
-      :headers="tableHeaders.campaignDetail"
+      :headers="tableHeader"
       :items="data"
       :items-per-page="options.itemsPerPage"
       :loading="loading"
       @update:options="options = $event"
       @click:row="goToDetail"        
       >
+        <template #item.assigned_leader="{ item }" v-if="isNotAgent">
+          {{ item.raw.leader?.name }}
+        </template>
+          
+        <template #item.assigned_user="{ item }" v-if="isNotAgent">
+          {{ item.raw.agent?.name }}
+        </template>
         <template #bottom>
           <VCardText class="mt-8">
             <VRow>
@@ -41,6 +48,7 @@
       </VDataTable>
 </template>
 <script setup>
+import { isAdminOrTeamLeader } from "@/plugins/auth";
 import { tableHeaders, tableOption } from '@/plugins/constant';
 import axios from '@axios';
 import { VDataTable } from 'vuetify/labs/VDataTable';
@@ -81,6 +89,11 @@ const status = toRef(props, 'status')
 const sub_status = toRef(props, 'sub_status')
 const is_custom = toRef(props, 'is_custom')
 const data = ref([])
+const isNotAgent = isAdminOrTeamLeader()
+
+const tableHeader = isNotAgent? 
+tableHeaders.campaignDetail : 
+tableHeaders.campaignDetail.filter(hItem => hItem.key != 'assigned_leader' && hItem.key != 'assigned_agent') 
 
 const goToDetail = (evt, row) => {
   router.push(`/campaign-detail/${row.item.raw.id}`)

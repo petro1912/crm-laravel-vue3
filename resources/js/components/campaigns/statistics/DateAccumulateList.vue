@@ -30,7 +30,7 @@ const getLeadProgress = () => {
 
     const headerValue = [
       {key: "name", title: "Name"},
-      {key: "total_leads", title: "Total Leads"},
+      // {key: "total_leads", title: "Total Leads"},
       {key: "filtered_total_leads", title: "Filtered Total Leads"},
     ]
 
@@ -50,9 +50,9 @@ const formatField = (count, total, isAverage) => {
     return 0;  
 
   if (isAverage)
-    return `${(100 * count / total).toFixed(2)}%`  
+    return count  
 
-  return `${count} (${(100 * count / total).toFixed(2)}%)`
+  return `${count}`
 }
 
 const applyFilter = () => {
@@ -88,7 +88,8 @@ onMounted(() => {
             :items="data"
             :itemsPerPage="50">
             <template v-for="header in count_headers" #[`item.${header.key}`] ="{ item }">
-              {{ formatField(item.raw[header.key], item.raw["total_leads"], item.raw['name'] == 'Average') }}
+              <!-- {{ formatField(item.raw[header.key], item.raw["total_leads"], item.raw['name'] == 'Average') }} -->
+              {{ item.raw[header.key] }}
             </template>
         </VDataTable>
     </div>

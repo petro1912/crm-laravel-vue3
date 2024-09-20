@@ -76,7 +76,6 @@ const setFilter = (filter) => {
     status.value = filter.status
     sub_status.value = filter.sub_status    
     isCustom.value = false
-    // getCampaignDetailList()
   }  
 }
 
@@ -89,7 +88,6 @@ const closeFilterNavigation = () => {
 }
 
 const applyCustomFilter = (param) => {
-  // getCampaignDetailList(param)
   if (
     param.applicantname.length == 0 && 
     param.applicantidentity.length == 0 &&

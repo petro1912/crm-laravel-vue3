@@ -2,7 +2,7 @@
   <div>
     <VCard>
       <VCardItem>
-        <VCardTitle>Campaign Detail</VCardTitle>
+        <VCardTitle>Campaign Detail (Total: {{ totalFilteredCount }})</VCardTitle>
         <template v-if="isAdminOrTeamLeader()" #append>
           <div class="d-flex align-end justify-end">
 
@@ -72,6 +72,7 @@ import ListWithFilter from "@/components/campaigns/list/ListWithFilter.vue";
 import AccumulateList from "@/components/campaigns/statistics/AccumulateList.vue";
 import DateAccumulateList from "@/components/campaigns/statistics/DateAccumulateList.vue";
 import { isAdminOrTeamLeader } from "@/plugins/auth";
+import axios from '@axios';
 
 const assignList = [
   {
@@ -98,10 +99,23 @@ const progressList = [
 const route = useRoute()
 const id = parseInt(route.params.id);
 const action = ref("list")
+const totalFilteredCount = ref(0)
 
 const setAction = (name) => {
   action.value = name;
 }
+
+const getTotalFilteredCount = () => {
+  axios.get(`/campaign-detail/${id}/total-filtered-count`) 
+  .then(res => {
+    const {total} = res.data
+    totalFilteredCount.value = total
+  }) 
+}
+
+onMounted(() => {
+  getTotalFilteredCount(); 
+})
 
 
 </script>

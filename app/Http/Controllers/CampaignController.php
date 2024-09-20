@@ -237,7 +237,7 @@ class CampaignController extends Controller
             if (!isset($applicantidentity))
                 $applicantidentity = '';
 
-            $builder = CampaignDetail::where('applicantname',  'LIKE', "%{$applicantname}%")
+            $builder = CampaignDetail::with(['leader', 'agent'])->where('applicantname',  'LIKE', "%{$applicantname}%")
                 ->where('applicantidentity', 'LIKE', "%{$applicantidentity}%");
 
             if (isset($start_date) && isset($end_date)) {
@@ -250,7 +250,7 @@ class CampaignController extends Controller
                 );
             }
         } else {
-            $builder = CampaignDetail::where($where);
+            $builder = CampaignDetail::with(['leader', 'agent'])->where($where);
         }
 
         $builder = $builder->where($whereUser);
@@ -274,6 +274,7 @@ class CampaignController extends Controller
         $campaign_detail->progressStatus = $request->progressStatus;
         $campaign_detail->progressSubStatus = $request->progressSubStatus;
         $campaign_detail->campaignAgentRemark = $request->campaignAgentRemark;
+        $campaign_detail->currentstatusdate = date('Y-m-d');
 
         $campaign_detail->save();
 
@@ -303,7 +304,7 @@ class CampaignController extends Controller
 
     public function getCampaignDetailInfo($id)
     {
-        $campaign_detail = CampaignDetail::find($id);
+        $campaign_detail = CampaignDetail::with(['leader', 'agent'])->find($id);
 
         return response()->json([
             "status" => "success",
@@ -770,7 +771,7 @@ class CampaignController extends Controller
                 'progressStatus, assigned_leader, count(*) as count'
             )
                 ->where(["campaign_id" => $id])
-                ->whereBetween('assigned_date', [$start_date, $end_date])
+                ->whereRaw('DATE(currentstatusdate) >=? AND DATE(currentstatusdate) <=?', [$start_date, $end_date])
                 ->groupBy('progressStatus', 'assigned_leader')
                 ->get();
         } else {
@@ -789,7 +790,7 @@ class CampaignController extends Controller
             )
                 ->where(["campaign_id" => $id])
                 ->whereIn('assigned_user', $leaderIds)
-                ->whereBetween('assigned_date', [$start_date, $end_date])
+                ->whereRaw('DATE(currentstatusdate) >=? AND DATE(currentstatusdate) <=?', [$start_date, $end_date])
                 ->groupBy('progressStatus', 'assigned_user')
                 ->get();
         }
@@ -825,9 +826,13 @@ class CampaignController extends Controller
             foreach ($status as $state) {
                 if (!isset($allStatusCount[$average][$state]))
                     $allStatusCount[$average][$state] = 0;
+                if (!isset($allStatusCount[$average][$filtered_total_status]))
+                    $allStatusCount[$average][$filtered_total_status] = 0;
 
                 $allStatusCount[$average][$state] += $allStatusCount[$username][$state];
                 $allStatusCount[$average][$total_status] += $allStatusCount[$username][$state];
+                if ($state != '')
+                    $allStatusCount[$average][$filtered_total_status] += $allStatusCount[$username][$state];
             }
         }
 
@@ -841,6 +846,26 @@ class CampaignController extends Controller
         return response()->json([
             "status" => $status,
             "lead_progress" => $lead_progress
+        ]);
+    }
+
+    function getTotalFilteredCount(Request $request, $id)
+    {
+        $user = $request->user();
+        $builder = CampaignDetail::where("campaign_id", $id)
+            ->whereDate('currentstatusdate', date('Y-m-d'))
+            ->where('progressStatus', '!=', '');
+
+        if ($user->role == UserRole::TEAM_LEADER) {
+            $builder = $builder->where(['assigned_leader' => $user->id]);
+        } else if ($user->role == UserRole::AGENT) {
+            $builder = $builder->where(['assigned_agent' => $user->id]);
+        }
+
+        $total = $builder->count();
+
+        return response()->json([
+            "total" => $total
         ]);
     }
 }
